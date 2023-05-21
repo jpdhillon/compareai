@@ -5,7 +5,7 @@ import Head from 'next/head'
 import { useState } from 'react'
 import { useSession, signOut, getSession } from 'next-auth/react'
 
-function account() {
+function Account() {
   const { data: session, status } = useSession()
   const [APIResponse, setAPIResponse] = useState(null)
 
@@ -71,4 +71,4 @@ function account() {
   }
 }
 
-export default account
+export default Account
