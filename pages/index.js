@@ -1,3 +1,6 @@
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/router'
+import { useEffect } from 'react'
 import Head from 'next/head'
 import Image from 'next/image'
 import { useRef, useState } from 'react'
@@ -5,12 +8,15 @@ import { Toaster, toast } from 'react-hot-toast'
 import Footer from '../components/Footer'
 import Header from '../components/Header'
 import LoadingDots from '../components/LoadingDots'
+import Link from 'next/link'
 
 const Home = () => {
   const [loading, setLoading] = useState(false)
   const [product1, setProduct1] = useState('')
   const [product2, setProduct2] = useState('')
   const [generatedComparison, setGeneratedComparison] = useState('')
+  const { data: session, status } = useSession()
+  const router = useRouter()
 
   const compareRef = useRef(null)
 
@@ -60,10 +66,33 @@ const Home = () => {
     setLoading(false)
   }
 
+  const saveComparison = async () => {
+    const response = await fetch('/api/save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        result: generatedComparison,
+        prompt: `${product1} vs ${product2}`,
+        saverName: session?.user?.name,
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error(response.statusText)
+    }
+
+    toast('Comparison saved', { icon: '✅' })
+
+    setProduct1('')
+    setProduct2('')
+  }
+
   return (
     <div className='flex max-w-5xl mx-auto flex-col items-center justify-center py-2 min-h-screen'>
       <Head>
-        <title>compareAI Generator</title>
+        <title>compareAI</title>
         <link rel='icon' href='/scale.png' />
       </Head>
       <main className='flex flex-1 w-full flex-col items-center justify-center text-center px-4 mt-12 sm:mt-20'>
@@ -157,6 +186,30 @@ const Home = () => {
                   <p>{generatedComparison}</p>
                 </div>
               </div>
+              {generatedComparison && (
+                <>
+                  {!loading && status === 'authenticated' && (
+                    <div>
+                      <button
+                        className='bg-black rounded-xl text-white font-medium px-4 py-2 sm:mt-10 mt-8 hover:bg-black/80 w-full'
+                        onClick={saveComparison}
+                      >
+                        Save comparison &rarr;
+                      </button>
+                      <p className='text-slate-500 mt-5'>
+                        View your saved comparisons on your{' '}
+                        <Link href='/account'>
+                          <span className='text-blue-500'>account page</span>
+                        </Link>
+                        .
+                      </p>
+                    </div>
+                  )}
+                  {!loading && status === 'unauthenticated' && (
+                    <p>Login to save comparison</p>
+                  )}
+                </>
+              )}
             </>
           )}
         </div>

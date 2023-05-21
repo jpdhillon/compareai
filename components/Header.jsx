@@ -15,7 +15,7 @@ export default function Header() {
     if (status === 'unauthenticated' && router.pathname !== '/') {
       router.push('/');
     }
-  }, [status, router]);
+  }, [status]);
 
   const handleLogin = () => signIn();
 
@@ -49,4 +49,5 @@ export default function Header() {
     </header>
   );
 }
+
 
